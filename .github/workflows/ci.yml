@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The suite checks tests/original.ahk against the
+          # original commit; without history it skips that check.
+          fetch-depth: 0
+      # The version the suite was verified with, checked against the hash
+      # autohotkey.com publishes beside it.
+      - name: Install AutoHotkey 2.0.28
+        shell: pwsh
+        run: |
+          $zip = "$env:RUNNER_TEMP\ahk.zip"
+          Invoke-WebRequest https://www.autohotkey.com/download/2.0/AutoHotkey_2.0.28.zip -OutFile $zip
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash
+          if ($hash -ne 'B63BE7548792B4AD0DFE424D91CC69376694ED2F758245B7A75A0C77D693B478') {
+            throw "AutoHotkey download has SHA-256 $hash, not the published one"
+          }
+          Expand-Archive $zip "$env:RUNNER_TEMP\ahk"
+          "$env:RUNNER_TEMP\ahk" >> $env:GITHUB_PATH
+      # From bash, not PowerShell: AutoHotkey is a GUI program, and PowerShell
+      # neither waits for one nor shows what it writes to stdout.
+      - name: Test
+        shell: bash
+        run: AutoHotkey64.exe tests/run.ahk

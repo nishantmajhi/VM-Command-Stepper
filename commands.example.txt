@@ -1,0 +1,45 @@
+# Lines starting with # are comments. They appear in the list as context but
+# are never typed, and Paste and Next step over them.
+#
+# Blank lines are dropped entirely. That matters in one place only: a blank line
+# inside a heredoc or an editor paste will not be reproduced. See the README.
+#
+# Copy this file to commands.txt and edit it. commands.txt is gitignored.
+
+# ===== Bring the box up to date =====
+sudo apt update
+sudo apt upgrade -y
+uname -a && lsb_release -d
+
+# ===== Install what we need =====
+# Without -y this stops at "Do you want to continue? [Y/n]", so Send All warns
+# about it. Left here on purpose: it is what the warning looks like.
+sudo apt install git curl
+
+sudo apt install -y build-essential
+
+# ===== Edit a config file =====
+# Send All warns here too. nano never returns on its own, so the lines below
+# would be typed into whatever nano had managed to draw.
+sudo nano /etc/example/app.conf
+
+# --- type this inside nano, then Ctrl+O, Enter, Ctrl+X ---
+server:
+  listen: 0.0.0.0
+  port: 8080
+  workers: 4
+
+# ===== Write a file without an editor =====
+# This is the transport to prefer for anything indentation-sensitive: the shell
+# takes the text literally, so nothing auto-indents it on the way in.
+cat > /tmp/app.env << 'EOF'
+APP_ENV=production
+APP_PORT=8080
+APP_DEBUG=false
+EOF
+cat /tmp/app.env
+
+# ===== Check it =====
+systemctl is-active example || echo "not running"
+curl -sS -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8080/
+journalctl -u example --no-pager -n 20

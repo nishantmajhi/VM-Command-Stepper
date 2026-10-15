@@ -1,0 +1,6 @@
+# Your own runbook. The shipped example is commands.example.txt.
+# The original committed commands.txt held a real LAN layout, real account
+# names and a health-record-shaped document; see SECRETS-TODO.md.
+commands.txt
+
+*.exe
